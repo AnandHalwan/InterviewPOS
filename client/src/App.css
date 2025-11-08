@@ -1,0 +1,25 @@
+.App {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex: 1;
+  padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.screen-placeholder {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.screen-placeholder h2 {
+  margin-bottom: 10px;
+  color: #333;
+}
+
