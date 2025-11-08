@@ -6,6 +6,7 @@ const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3001/api';
 
 const ReportsScreen = () => {
   const [transactions, setTransactions] = useState([]);
+  const [dailyTotal, setDailyTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [expandedTransactions, setExpandedTransactions] = useState(new Set());
@@ -20,6 +21,8 @@ const ReportsScreen = () => {
       setError(null);
       const response = await axios.get(`${API_BASE}/transactions?status=finalized&limit=1000`);
       setTransactions(response.data);
+      const dailyTotalResponse = await axios.get(`${API_BASE}/transactions/daily-total`);
+      setDailyTotal(dailyTotalResponse.data.dailyTotal);
     } catch (err) {
       setError('Failed to load transactions');
       console.error(err);
@@ -83,7 +86,12 @@ const ReportsScreen = () => {
       <div className="reports-header">
         <h1>Transaction Reports</h1>
       </div>
-
+      <div className="reports-summary">
+        <div className="summary-item">
+          <span className="summary-label">Daily Total:</span>
+          <span className="summary-value">{formatCurrency(dailyTotal)}</span>
+        </div>
+      </div>
       {transactions.length === 0 ? (
         <div className="empty-state">
           <p>No transactions found.</p>

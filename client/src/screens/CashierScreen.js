@@ -617,6 +617,7 @@ const CashierScreen = () => {
                           <td>{line.item?.name || 'Unknown Item'}</td>
                           <td>{line.quantity}</td>
                           <td>{formatCurrency(line.unit_price)}</td>
+                          <td>{formatCurrency(line.tax_rate * line.unit_price)}</td>
                           <td>{formatCurrency(line.line_total)}</td>
                           <td>
                             {isRefunded ? (

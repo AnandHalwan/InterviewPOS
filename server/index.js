@@ -436,7 +436,10 @@ app.post('/api/transactions/:transactionId/lines', async (req, res) => {
 
     allLines.forEach((line) => {
       const lineSubtotal = parseFloat(line.unit_price) * parseInt(line.quantity);
-      const lineTax = lineSubtotal * parseFloat(line.tax_rate);
+      let lineTax = lineSubtotal * parseFloat(line.tax_rate);
+      console.log('lineTax', lineTax);
+      lineTax = Math.round(lineTax * 100) / 100;
+      console.log('lineTax after rounding', lineTax);
       const lineTotal = lineSubtotal + lineTax;
       
       newSubtotal += lineSubtotal;
@@ -444,6 +447,7 @@ app.post('/api/transactions/:transactionId/lines', async (req, res) => {
       newTotal += lineTotal;
     });
 
+    // Add rounding logic
     // Update transaction
     const { data: updatedTx, error: updateError } = await supabase
       .from('pos_transaction')
@@ -697,6 +701,41 @@ app.get('/api/transactions', async (req, res) => {
     res.json(transactionsWithLines);
   } catch (error) {
     console.error('Get transactions error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Get daily total
+app.get('/api/transactions/daily-total', async (req, res) => {
+  try {
+    // Get today's date range (start and end of today)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStart = today.toISOString();
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const todayEnd = tomorrow.toISOString();
+
+    // Get all finalized transactions for today
+    const { data: transactions, error: txError } = await supabase
+      .from('pos_transaction')
+      .select('total')
+      .eq('status', 'finalized')
+      .gte('created_at', todayStart)
+      .lt('created_at', todayEnd);
+
+    if (txError) {
+      console.error('Error fetching daily transactions:', txError);
+      return res.status(500).json({ error: 'Failed to fetch daily transactions' });
+    }
+
+    // Calculate total in business logic
+    const dailyTotal = (transactions || []).reduce((sum, tx) => sum + parseFloat(tx.total || 0), 0);
+
+    res.json({ dailyTotal: dailyTotal.toFixed(2) });
+  } catch (error) {
+    console.error('Get daily total error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
